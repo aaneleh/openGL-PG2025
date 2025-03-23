@@ -1,28 +1,3 @@
-/*
- * Hello Triangle - Código adaptado de:
- *   - https://learnopengl.com/#!Getting-started/Hello-Triangle
- *   - https://antongerdelan.net/opengl/glcontext2.html
- *
- * Adaptado por: Rossana Baptista Queiroz
- *
- * Disciplinas:
- *   - Processamento Gráfico (Ciência da Computação - Híbrido)
- *   - Processamento Gráfico: Fundamentos (Ciência da Computação - Presencial)
- *   - Fundamentos de Computação Gráfica (Jogos Digitais)
- *
- * Descrição:
- *   Este código é o "Olá Mundo" da Computação Gráfica, utilizando OpenGL Moderna.
- *   No pipeline programável, o desenvolvedor pode implementar as etapas de
- *   Processamento de Geometria e Processamento de Pixel utilizando shaders.
- *   Um programa de shader precisa ter, obrigatoriamente, um Vertex Shader e um Fragment Shader,
- *   enquanto outros shaders, como o de geometria, são opcionais.
- *
- * Histórico:
- *   - Versão inicial: 07/04/2017
- *   - Última atualização: 18/03/2025
- *
- */
-
 #include <iostream>
 #include <string>
 #include <assert.h>
@@ -31,7 +6,6 @@ using namespace std;
 
 // GLAD
 #include <glad/glad.h>
-
 // GLFW
 #include <GLFW/glfw3.h>
 
@@ -40,7 +14,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 // Protótipos das funções
 int setupShader();
-int setupGeometry();
+int setupGeometry(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
 
 // Dimensões da janela (pode ser alterado em tempo de execução)
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -66,7 +40,6 @@ const GLchar *fragmentShaderSource = R"(
  }
  )";
 
-// Função MAIN
 int main()
 {
 	// Inicialização da GLFW
@@ -84,13 +57,8 @@ int main()
 	// Ativa a suavização de serrilhado (MSAA) com 8 amostras por pixel
 	glfwWindowHint(GLFW_SAMPLES, 8);
 
-	// Essencial para computadores da Apple
-	// #ifdef __APPLE__
-	//	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	// #endif
-
 	// Criação da janela GLFW
-	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Ola Triangulo! -- Rossana", nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Tarefav2 PG M2 ", nullptr, nullptr);
 	if (!window)
 	{
 		std::cerr << "Falha ao criar a janela GLFW" << std::endl;
@@ -124,7 +92,14 @@ int main()
 	GLuint shaderID = setupShader();
 
 	// Gerando um buffer simples, com a geometria de um triângulo
-	GLuint VAO = setupGeometry();
+	//GLuint VAO = setupGeometry(-0.5, -0.5, 0.0,	0.0, -0.5, 0.0,	-0.25, 0.0, 0.0);
+/* 	GLuint VAO1 = setupGeometry(-0.5, -0.5, 0.0, 0, -0.5, 0.0,	-0.25, 0.0, 0.0);
+	GLuint VAO2 = setupGeometry(-0.5, 0.0, 0.0, 0, 0.0, 0.0,	-0.25, 0.5, 0.0); */
+
+	GLuint VAOs[] = {
+		(GLuint)setupGeometry(-0.5, -0.5, 0.0, 0, -0.5, 0.0,	-0.25, 0.0, 0.0), 
+		(GLuint)setupGeometry(-0.5, 0.0, 0.0, 0, 0.0, 0.0,	-0.25, 0.5, 0.0)
+	};
 
 	// Enviando a cor desejada (vec4) para o fragment shader
 	// Utilizamos a variáveis do tipo uniform em GLSL para armazenar esse tipo de info
@@ -153,7 +128,7 @@ int main()
 
 				// Cria uma string e define o FPS como título da janela.
 				char tmp[256];
-				sprintf(tmp, "Ola Triangulo! -- Rossana\tFPS %.2lf", fps);
+				sprintf(tmp, "Tarefav2 PG M2 \tFPS %.2lf", fps);
 				glfwSetWindowTitle(window, tmp);
 
 				title_countdown_s = 0.1; // Reinicia o temporizador para atualizar o título periodicamente.
@@ -170,21 +145,18 @@ int main()
 		glLineWidth(10);
 		glPointSize(20);
 
-		glBindVertexArray(VAO); // Conectando ao buffer de geometria
-
-		glUniform4f(colorLoc, 0.0f, 0.0f, 1.0f, 1.0f); // enviando cor para variável uniform inputColor
-
-		// Chamada de desenho - drawcall
-		// Poligono Preenchido - GL_TRIANGLES
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		// glBindVertexArray(0); // Desnecessário aqui, pois não há múltiplos VAOs
+		for(int i = 0; i < 2; i++){
+			glBindVertexArray(VAOs[i]);
+			glUniform4f(colorLoc, 0.0f, 0.0f, 1.0f, 1.0f); // enviando cor para variável uniform inputColor
+			glDrawArrays(GL_TRIANGLES, 0, 3);
+			glBindBuffer(GL_ARRAY_BUFFER, VAOs[i]);
+		}
 
 		// Troca os buffers da tela
 		glfwSwapBuffers(window);
 	}
 	// Pede pra OpenGL desalocar os buffers
-	glDeleteVertexArrays(1, &VAO);
+	//glDeleteVertexArrays(1, &VAO1);
 	// Finaliza a execução da GLFW, limpando os recursos alocados por ela
 	glfwTerminate();
 	return 0;
@@ -256,20 +228,16 @@ int setupShader()
 // Apenas atributo coordenada nos vértices
 // 1 VBO com as coordenadas, VAO com apenas 1 ponteiro para atributo
 // A função retorna o identificador do VAO
-int setupGeometry()
-{
+int setupGeometry(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3){
 	// Aqui setamos as coordenadas x, y e z do triângulo e as armazenamos de forma
 	// sequencial, já visando mandar para o VBO (Vertex Buffer Objects)
 	// Cada atributo do vértice (coordenada, cores, coordenadas de textura, normal, etc)
 	// Pode ser arazenado em um VBO único ou em VBOs separados
 	GLfloat vertices[] = {
 		// x   y     z
-		// T0
-		-0.5, -0.5, 0.0, // v0
-		0.5, -0.5, 0.0,	 // v1
-		0.0, 0.5, 0.0,	 // v2
-						 // T1
-
+		x1, y1, z1,
+		x2, y2, z2,
+		x3, y3, z3
 	};
 
 	GLuint VBO, VAO;
@@ -304,3 +272,4 @@ int setupGeometry()
 
 	return VAO;
 }
+
