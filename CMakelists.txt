@@ -34,8 +34,7 @@ include_directories(${glm_SOURCE_DIR})
 
 # Lista de exemplos/exercícios podem ser colocados aqui também
 set(EXERCISES
-    HelloTriangle
-    HelloTriangleV2
+    CreateTriangle
 )
 
 add_compile_options(-Wno-pragmas)
