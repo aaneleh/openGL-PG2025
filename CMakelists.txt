@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(CreateTriangle)
+project(OpenGL-PG2025)
 
 # Define o padrão do C++
 set(CMAKE_CXX_STANDARD 17)
@@ -35,6 +35,7 @@ include_directories(${glm_SOURCE_DIR})
 # Lista de exemplos/exercícios podem ser colocados aqui também
 set(EXERCISES
     CreateTriangle
+    JogoDasCores
 )
 
 add_compile_options(-Wno-pragmas)
@@ -60,7 +61,13 @@ endif()
 
 # Cria os executáveis
 foreach(EXERCISE ${EXERCISES})
-    add_executable(${EXERCISE} src/${EXERCISE}.cpp ${GLAD_C_FILE})
-    target_include_directories(${EXERCISE} PRIVATE ${CMAKE_SOURCE_DIR}/include/glad ${glm_SOURCE_DIR})
-    target_link_libraries(${EXERCISE} glfw ${OPENGL_LIBS})
+    # Extrai o nome do arquivo sem o diretório para o executável
+    get_filename_component(EXE_NAME ${EXERCISE} NAME)                                                                                                                                       
+    
+    # Adiciona o executável usando o nome do arquivo como nome do executável
+    add_executable(${EXE_NAME} src/${EXERCISE}.cpp ${GLAD_C_FILE})
+
+    # Configura as bibliotecas e include dirs para o executável
+    target_include_directories(${EXE_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include/glad ${glm_SOURCE_DIR} ${stb_image_SOURCE_DIR})
+    target_link_libraries(${EXE_NAME} glfw ${OPENGL_LIBS} glm::glm)
 endforeach()
