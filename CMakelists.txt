@@ -36,6 +36,7 @@ include_directories(${glm_SOURCE_DIR})
 set(EXERCISES
     CreateTriangle
     JogoDasCores
+    CreateTriangleVertices
 )
 
 add_compile_options(-Wno-pragmas)
