@@ -70,7 +70,7 @@ int main(){
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_SAMPLES, 8);
 
-	GLFWwindow *window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "Jogo das cores M3", nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "Atividade Vivencial I", nullptr, nullptr);
 
 	if(!window){
 		glfwTerminate();
@@ -96,15 +96,15 @@ int main(){
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "projection"), 1, GL_FALSE, value_ptr(projection));
 
 
+	mat4 model = mat4(1); //matriz identidade
+	model = translate(model,vec3(400.0,300.0,0.0));
+	model = scale(model,vec3(300.0,300.0,1.0));
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
+
+
 	while(!glfwWindowShouldClose(window)){
 
 		glfwPollEvents();
-
-		glClearColor(0,0,0,1);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		glLineWidth(10);
-		glPointSize(20);
 
 		const int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 		if(state == GLFW_PRESS){
@@ -135,6 +135,12 @@ int main(){
             }  
         }
 
+		glClearColor(0,0,0,1);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		glLineWidth(10);
+		glPointSize(20);
+
 		for(int i = 0; i < triangles.size(); i++){
             
             mat4 model = mat4(1);
@@ -147,7 +153,7 @@ int main(){
 
             glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
             glUniform4f(colorLoc, triangles[i].color[0], triangles[i].color[1], triangles[i].color[2], 1.0f);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0 ,6);
+            glDrawArrays(GL_TRIANGLES, 0 ,3);
 		}
 
 		glfwSwapBuffers(window);
@@ -206,7 +212,7 @@ int setupShader(){
 Triangle setupTriangle(float x0, float y0, float x1, float y1, float x2, float y2){
 
 	Triangle triangle;
-    triangle.position = vec3((x0+x1+x2)/3, (y0+y1+y2)/3, 0);
+    triangle.position = vec3(0, 0, 0);
 	triangle.color = vec3(((float)rand()/(float)(RAND_MAX)), ((float)rand()/(float)(RAND_MAX)), ((float)rand()/(float)(RAND_MAX)));
 
     GLfloat vertices[] = {
