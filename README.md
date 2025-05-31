@@ -21,7 +21,7 @@ Você deve implementar um jogo que avalia uma escolha de cor do usuário e verif
 2) A cada 3 vértices criados, você criará um triângulo
 3) Para cada novo triângulo criado, você deve usar uma cor nova.
 
-## Tarefa Vivencial M4 - Mapeamento de Texturas `HelloTexture.cpp`
+## Tarefa M4 - Mapeamento de Texturas `HelloTexture.cpp`
 
 1) Desenhe uma cena composta por vários retângulos texturizados (sprites) com diferentes
 texturas
@@ -30,3 +30,11 @@ texturas
   - O identificador da textura do sprite;
   - Variáveis para armazenar a posição, escala e rotação, que alimentarão a matriz de transformações do objeto sprite (matriz de modelo);
   - Uma referência ao shader (o ID do shader ou ponteiro para objeto da classe que lê e gerencia os shaders). Dessa forma, você poderá encapsular os métodos de atualizar e desenhar o sprite dentro da classe.
+
+## Tarefa Vivencial II - `ParallaxScrolling.cpp`
+
+1) Você escolherá um dos sprites como sendo o “personagem” do jogador. Este personagem deverá se
+mover para os lados ou para cima e para baixo utilizando o teclado.
+2) O fundo da cena será um cenário construído em camadas. Inicialmente, o cenário terá todas as camadas posicionadas igualmente.
+3) Ao mover o personagem, as camadas deverão deslocar-se junto com ele. As camadas mais próximas do personagem (exemplo: chão, árvores...) deverão se deslocar mais rápido (offset maior), enquanto as camadas mais distantes do personagem (exemplo: montanha, nuvens) irão se deslocar mais
+lentamente
