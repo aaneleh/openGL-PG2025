@@ -47,6 +47,7 @@ set(EXERCISES
     JogoDasCores
     CreateTriangleVertices
     HelloTexture
+    ParallaxScrolling
 )
 
 add_compile_options(-Wno-pragmas)
