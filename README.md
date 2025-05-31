@@ -31,7 +31,7 @@ texturas
   - Variáveis para armazenar a posição, escala e rotação, que alimentarão a matriz de transformações do objeto sprite (matriz de modelo);
   - Uma referência ao shader (o ID do shader ou ponteiro para objeto da classe que lê e gerencia os shaders). Dessa forma, você poderá encapsular os métodos de atualizar e desenhar o sprite dentro da classe.
 
-## Tarefa Vivencial II - `ParallaxScrolling.cpp`
+## Tarefa Vivencial 2 - `ParallaxScrolling.cpp`
 
 1) Você escolherá um dos sprites como sendo o “personagem” do jogador. Este personagem deverá se
 mover para os lados ou para cima e para baixo utilizando o teclado.
