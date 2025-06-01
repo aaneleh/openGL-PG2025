@@ -168,27 +168,49 @@ int main(){
 		const int stateUP = glfwGetKey(window, GLFW_KEY_UP);
 		if(stateUP == GLFW_PRESS) {
 			moveY = -5;
-			rotationGoal =  0.0;
+			//rotationGoal =  0.0;
 		} 
 		const int stateRIGHT = glfwGetKey(window, GLFW_KEY_RIGHT); 
 		if(stateRIGHT == GLFW_PRESS) {
 			moveX = +5;	
-			rotationGoal =  90.0;
+			//rotationGoal =  90.0;
 		}
 		const int stateDOWN = glfwGetKey(window, GLFW_KEY_DOWN);
 		if(stateDOWN == GLFW_PRESS) {
 			moveY = +5;
-			rotationGoal =  180.0;
+			//rotationGoal =  180.0;
 		}
 		const int stateLEFT = glfwGetKey(window, GLFW_KEY_LEFT);
 		if(stateLEFT == GLFW_PRESS) {
 			moveX = -5;	
-			rotationGoal = 270.0;
+			//rotationGoal = 270.0;
 		}
-		
+
 
 		//Se qualquer tecla está pressionada faz a rotação correspondente
 		if(stateUP == GLFW_PRESS || stateDOWN == GLFW_PRESS || stateRIGHT == GLFW_PRESS || stateLEFT == GLFW_PRESS){
+
+			if(moveX > 0){
+				rotationGoal = 90;
+				if(moveY < 0) {
+					rotationGoal -= 45;
+				} else if(moveY > 0) {
+					rotationGoal += 45;
+				}
+			} else if (moveX < 0){
+				rotationGoal = 270;
+				if(moveY < 0) {
+					rotationGoal += 45;
+				} else if(moveY > 0) {
+					rotationGoal -= 45;
+				}
+			} else if(moveY > 0){
+				rotationGoal = 0;
+			} else if (moveY < 0) {
+				rotationGoal = 180;
+			}
+			rotationGoal += 0;
+
 			if(player.rotation != rotationGoal){
 				//faz a rotação ao contrário se a rota mais próxima for passando pelo angulo 0
 				if(player.rotation - rotationGoal > 180 || player.rotation - rotationGoal < -180){
