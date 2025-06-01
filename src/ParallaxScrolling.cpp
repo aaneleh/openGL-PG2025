@@ -106,7 +106,7 @@ int main(){
 
 	Sprite Sprite;
 	Sprite.VAO = createSprite();
-	
+	float spriteDimension;
 	//SPRITES BACKGROUND (4 para fazer infinito)
 
 	Sprite.dimensions = vec3(WIN_HEIGHT,WIN_WIDTH,1.0);
@@ -115,37 +115,25 @@ int main(){
 	Sprite.TexID = loadTexture("../assets/background.png");
 	Sprite.position = vec3(WIN_WIDTH/2, WIN_HEIGHT/2, 0.0);
 	background.push_back(Sprite);
-	//GRID 3X3, quando o player chega em uma nova porção 
-	for(int i = 0; i < 9; i++){
-		spriteDimension = rand() % 70 + 70;
-		Sprite.dimensions = vec3( spriteDimension , spriteDimension ,1.0);
-		Sprite.position = vec3( rand() % WIN_WIDTH , rand() % WIN_HEIGHT, 0.0);
-		Sprite.rotation = rand() % 360;
-		Sprite.offset = 0.4f + (rand() % 1);
-		Sprite.TexID = loadTexture(images[rand() % images.size()]);
-
-		meteors.push_back(Sprite);
-	}
+	//TODO GRID 3X3, quando o player chega em uma nova porção 
 
 	//SPRITES METEORS
 	vector<string> images = {"../assets/Meteor_01.png", "../assets/Meteor_04.png", "../assets/Meteor_10.png"};
-	int spriteDimension;
 
 	for(int i = 0; i < 8; i++){
 		spriteDimension = rand() % 70 + 70;
 		Sprite.dimensions = vec3( spriteDimension , spriteDimension ,1.0);
 		Sprite.position = vec3( rand() % WIN_WIDTH , rand() % WIN_HEIGHT, 0.0);
 		Sprite.rotation = rand() % 360;
-		Sprite.offset = 0.4f + (rand() % 1);
+		Sprite.offset = 1 + (rand() % 80)/14;
 		Sprite.TexID = loadTexture(images[rand() % images.size()]);
-
 		meteors.push_back(Sprite);
 	}
 
 	//SPRITE PLAYER
-	Sprite.position = vec3(WIN_WIDTH-60, WIN_HEIGHT-60, 0.0);
-	Sprite.dimensions = vec3(360,360,1.0);
-	Sprite.rotation = 45.0f;
+	Sprite.position = vec3(WIN_WIDTH/2, WIN_HEIGHT/2, 0.0);
+	Sprite.dimensions = vec3(100,100,1.0);
+	Sprite.rotation = 0.0f;
 	Sprite.offset = 1.0f;
 	Sprite.TexID = loadTexture("../assets/ship.png");
 	player = Sprite;
@@ -158,6 +146,11 @@ int main(){
 
 	mat4 projection = ortho(0.0, 800.0, 600.0, 0.0, -1.0, 1.0);
 	glUniformMatrix4fv(glGetUniformLocation(shaderID, "projection"), 1, GL_FALSE, value_ptr(projection));
+
+	vec3 positionMoved;
+	mat4 model;
+
+	float rotationGoal;
 
 	while(!glfwWindowShouldClose(window)){
 
@@ -172,48 +165,109 @@ int main(){
 		moveX = 0;
 		moveY = 0;
 
-		const int stateD = glfwGetKey(window, GLFW_KEY_D); //EXEMPLO ISSO GLFW_KEY_E
-		if(state == GLFW_PRESS){
-			printf("KEY_D pressed")
-			moveX = +5;
-		}
-		const int stateA = glfwGetKey(window, GLFW_KEY_A); //TESTE SE FUNCIONA ASSIM PRO D	
-		if(state == GLFW_PRESS){
-			printf("KEY_A pressed")
-			moveX = -5;
-		}
-		const int stateD = glfwGetKey(window, GLFW_KEY_W); //TESTE SE FUNCIONA ASSIM PRO D	
-		if(state == GLFW_PRESS){
-			printf("KEY_W pressed")
-			moveY = +5;
-		}
-		const int stateD = glfwGetKey(window, GLFW_KEY_W); //TESTE SE FUNCIONA ASSIM PRO D	
-		if(state == GLFW_PRESS){
-			printf("KEY_W pressed")
+		const int stateUP = glfwGetKey(window, GLFW_KEY_UP);
+		if(stateUP == GLFW_PRESS) {
 			moveY = -5;
+			rotationGoal =  0.0;
+		} 
+
+		const int stateRIGHT = glfwGetKey(window, GLFW_KEY_RIGHT); 
+		if(stateRIGHT == GLFW_PRESS) {
+			moveX = +5;	
+			rotationGoal =  90.0;
 		}
 
+		const int stateDOWN = glfwGetKey(window, GLFW_KEY_DOWN);
+		if(stateDOWN == GLFW_PRESS) {
+			moveY = +5;
+			rotationGoal =  180.0;
+		}
+		const int stateLEFT = glfwGetKey(window, GLFW_KEY_LEFT);
+		if(stateLEFT == GLFW_PRESS) {
+			moveX = -5;	
+			rotationGoal = 270.0;
+		}
+
+		//Se qualquer tecla está pressionada faz a rotação correspondente
+		if(stateUP == GLFW_PRESS || stateDOWN == GLFW_PRESS || stateRIGHT == GLFW_PRESS || stateLEFT == GLFW_PRESS){
+/* 			printf("\ngoal = %f", rotationGoal);
+			printf("\nplayer = %f", player.rotation); */
+
+			if(player.rotation != rotationGoal){
+				//faz a rotação ao contrário se a rota mais próxima for passando pelo angulo 0
+				if(player.rotation - rotationGoal > 180 || player.rotation - rotationGoal < -180){
+
+					if(player.rotation - rotationGoal <= 0){
+						player.rotation -= 5;
+
+						if(player.rotation > rotationGoal) player.rotation = rotationGoal;
+					
+					} else if(player.rotation - rotationGoal > 0){
+						player.rotation += 5;
+						if(player.rotation < rotationGoal) player.rotation = rotationGoal;
+					}
+
+					//Se passou de 360 reseta pra 0 e se desceu abaixo de 0 reseta pra 360
+					if(player.rotation > 360) { 	player.rotation = 0;  }
+					else if(player.rotation < 0){ 	player.rotation = 360;	}
+
+				//Faz a rotação normal, sem necessitar checar pelo 360
+				} else {
+
+					if(player.rotation - rotationGoal >= 0){
+						if(player.rotation > rotationGoal) player.rotation -= 5;
+						
+					} else if(player.rotation - rotationGoal <= 0){
+						if(player.rotation < rotationGoal) player.rotation += 5;
+					}
+				}
+			}
+		}
+
+		//TRANSFORMAÇÕES E DRAW BACKGROUND
+		model = mat4(1);
+		//positionMoved = vec3((meteors[i].position[0] * (moveX*meteors[i].offset)), (meteors[i].position[1] * (moveY*meteors[i].offset)),meteors[i].position[2]);
+		model = translate(model, background[0].position);
+		model = rotate(model, radians(background[0].rotation), vec3(0.0, 0.0, 1.0));
+		model = scale(model, background[0].dimensions);
+		glBindVertexArray(background[0].VAO);
+		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
+		glBindTexture(GL_TEXTURE_2D, background[0].TexID); 
+		glDrawArrays(GL_TRIANGLE_STRIP, 0 , 4);
+
+		//TRANSFORMAÇÕES E DRAW METEOROS
 		for(int i = 0; i < meteors.size(); i++){
-				
-			/* Os valores devem ser invertidos a não ser no caso do "player",
-			ou seja, ao aperta D o translate do jogador vai ser +moveX
-			enquanto dos outros meteors será -moveY */
-			mat4 model = mat4(1);
-			model = translate(model, vec3(
-				(meteors[i].position[0] * (moveX*meteors[i].offset)) % WIN_WIDTH, 
-				(meteors[i].position[1] * (moveY*meteors[i].offset)) % WIN_HEIGHT,
-				meteors[i].position[2]));
+			//MOVIMENTA OS METEOROS PARA DIREÇÃO CONTRARIA DO JOGADOR, CADA METEORO TEM SEU OFFSET, SE MOVIMENTANDO A VELOCIDADES DIFERENTES
+			meteors[i].position = vec3(
+				(meteors[i].position[0] - (moveX*meteors[i].offset)), 
+				(meteors[i].position[1] - (moveY*meteors[i].offset)),
+				meteors[i].position[2]);
+			//QUANDO O METEORO SAÍ DO ESPAÇO DA TELA SUA POSIÇÃO É ENVIADA PARA O OUTRO EXTREMO
+			if(meteors[i].position[0] < 0) meteors[i].position[0] = WIN_WIDTH;
+			if(meteors[i].position[0] > WIN_WIDTH) meteors[i].position[0] = 0;
+			if(meteors[i].position[1] < 0) meteors[i].position[1] = WIN_HEIGHT;
+			if(meteors[i].position[1] > WIN_HEIGHT) meteors[i].position[1] = 0;
+			//TRANSFORMAÇÕES
+			model = mat4(1);
+			model = translate(model, meteors[i].position);
 			model = rotate(model, radians(meteors[i].rotation), vec3(0.0, 0.0, 1.0));
 			model = scale(model, meteors[i].dimensions);
-
+			//DRAW METEOROS
 			glBindVertexArray(meteors[i].VAO);
-			
 			glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
-			
 			glBindTexture(GL_TEXTURE_2D, meteors[i].TexID); // Conectando ao buffer de textura
-
 			glDrawArrays(GL_TRIANGLE_STRIP, 0 , 4);
 		} 
+			
+		//TRANSFORMAÇÕES E DRAW NAVE PLAYER
+		model = mat4(1);
+		model = translate(model, player.position);
+		model = rotate(model, radians(player.rotation), vec3(0.0, 0.0, 1.0));
+		model = scale(model, player.dimensions);
+		glBindVertexArray(player.VAO);
+		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
+		glBindTexture(GL_TEXTURE_2D, player.TexID); // Conectando ao buffer de textura
+		glDrawArrays(GL_TRIANGLE_STRIP, 0 , 4);
 
 		glfwSwapBuffers(window);
 	}
