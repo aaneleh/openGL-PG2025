@@ -25,8 +25,7 @@ struct Sprite {
 	vec3 position;
 	vec3 dimensions;
 	float rotation;
-	float offset; 	//multiplicar offset*moveX quando calculando a posição
-					//1 se distancia padrão, 0.8 -> mais longe, se move mais lentamente
+	float offset; 	//multiplicar offset*moveX quando calculando a posição; 1 se distancia padrão, 0.8 -> mais longe, se move mais lentamente
 	GLuint TexID;
 	GLuint VAO;
 };
@@ -34,19 +33,15 @@ struct Sprite {
 Sprite player;
 vector<Sprite> meteors;
 vector<Sprite> background;
+GLuint createSprite();
 
 int moveX;
 int moveY;
 
 int setupShader();
-
 int loadTexture(string filePath);
 
 const GLuint WIN_WIDTH = 800, WIN_HEIGHT = 600;
-
-GLuint createSprite();
-
-const GLuint Sprite_WIDTH = 100, Sprite_HEIGHT = 100;
 
 // Código fonte do Vertex Shader (em GLSL): ainda hardcoded
 const GLchar *vertexShaderSource = R"(
@@ -82,11 +77,8 @@ const GLchar *fragmentShaderSource = R"(
 int main(){
 
 	srand(time(0));
-
 	glfwInit();
-
 	glfwWindowHint(GLFW_SAMPLES, 8);
-
 	GLFWwindow *window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "Jogo das cores M3", nullptr, nullptr);
 
 	if(!window){
@@ -104,45 +96,53 @@ int main(){
 
 	GLuint shaderID = setupShader();
 
-	Sprite Sprite;
-	Sprite.VAO = createSprite();
+	/****************************************************************/
+	/*CRIANDO SPRITES*/
+	Sprite sprite;
+	sprite.VAO = createSprite();
 	float spriteDimension;
-	//SPRITES BACKGROUND (4 para fazer infinito)
 
-	Sprite.dimensions = vec3(WIN_HEIGHT,WIN_WIDTH,1.0);
-	Sprite.rotation = 90.0f;
-	Sprite.offset = 0.2f;
-	Sprite.TexID = loadTexture("../assets/background.png");
-	Sprite.position = vec3(WIN_WIDTH/2, WIN_HEIGHT/2, 0.0);
-	background.push_back(Sprite);
+	//SPRITES BACKGROUND (4 para fazer infinito)
+	sprite.dimensions = vec3(WIN_HEIGHT,WIN_WIDTH,1.0);
+	sprite.rotation = 90.0f;
+	sprite.offset = 0.2f;
+	sprite.TexID = loadTexture("../assets/background.png");
+	sprite.position = vec3(WIN_WIDTH/2, WIN_HEIGHT/2, 0.0);
+	background.push_back(sprite);
 	//TODO GRID 3X3, quando o player chega em uma nova porção 
 
 	//SPRITES METEORS
-	vector<string> images = {"../assets/Meteor_01.png", "../assets/Meteor_04.png", "../assets/Meteor_10.png"};
-
+	vector<string> images = {"../assets/Meteor_01.png", "../assets/Meteor_04.png", "../assets/Meteor_10.png", "../assets/Meteor_07.png","../assets/Meteor_06.png"};
 	for(int i = 0; i < 8; i++){
 		spriteDimension = rand() % 70 + 70;
-		Sprite.dimensions = vec3( spriteDimension , spriteDimension ,1.0);
-		Sprite.position = vec3( rand() % WIN_WIDTH , rand() % WIN_HEIGHT, 0.0);
-		Sprite.rotation = rand() % 360;
-		Sprite.offset = 1 + (rand() % 80)/14;
-		Sprite.TexID = loadTexture(images[rand() % images.size()]);
-		meteors.push_back(Sprite);
+		sprite.position = vec3( rand() % WIN_WIDTH , rand() % WIN_HEIGHT, 0.0);
+		sprite.dimensions = vec3( spriteDimension , spriteDimension ,1.0);
+		sprite.rotation = rand() % 360;
+		sprite.offset = 1 + (rand() % 80)/14;
+		sprite.TexID = loadTexture(images[rand() % images.size()]);
+		meteors.push_back(sprite); 
 	}
 
 	//SPRITE PLAYER
-	Sprite.position = vec3(WIN_WIDTH/2, WIN_HEIGHT/2, 0.0);
-	Sprite.dimensions = vec3(100,100,1.0);
-	Sprite.rotation = 0.0f;
-	Sprite.offset = 1.0f;
-	Sprite.TexID = loadTexture("../assets/ship.png");
-	player = Sprite;
+	sprite.position = vec3(WIN_WIDTH/2, WIN_HEIGHT/2, 0.0);
+	sprite.dimensions = vec3(100,100,1.0);
+	sprite.rotation = 0.0f;
+	sprite.offset = 1.0f;
+	sprite.TexID = loadTexture("../assets/ship.png");
+	player = sprite;
+	/****************************************************************/
 
 	glUseProgram(shaderID);
 
 	glActiveTexture(GL_TEXTURE0); // Ativando o primeiro buffer de textura do OpenGL
 
 	glUniform1i(glGetUniformLocation(shaderID, "tex_buff"), 0); // Criando a variável uniform pra mandar a textura pro shader
+
+	glEnable(GL_DEPTH_TEST); // Habilita o teste de profundidade
+	glDepthFunc(GL_ALWAYS); // Testa a cada ciclo
+
+	glEnable(GL_BLEND); //Habilita a transparência -- canal alpha
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //Seta função de transparência
 
 	mat4 projection = ortho(0.0, 800.0, 600.0, 0.0, -1.0, 1.0);
 	glUniformMatrix4fv(glGetUniformLocation(shaderID, "projection"), 1, GL_FALSE, value_ptr(projection));
@@ -170,13 +170,11 @@ int main(){
 			moveY = -5;
 			rotationGoal =  0.0;
 		} 
-
 		const int stateRIGHT = glfwGetKey(window, GLFW_KEY_RIGHT); 
 		if(stateRIGHT == GLFW_PRESS) {
 			moveX = +5;	
 			rotationGoal =  90.0;
 		}
-
 		const int stateDOWN = glfwGetKey(window, GLFW_KEY_DOWN);
 		if(stateDOWN == GLFW_PRESS) {
 			moveY = +5;
@@ -187,12 +185,10 @@ int main(){
 			moveX = -5;	
 			rotationGoal = 270.0;
 		}
+		
 
 		//Se qualquer tecla está pressionada faz a rotação correspondente
 		if(stateUP == GLFW_PRESS || stateDOWN == GLFW_PRESS || stateRIGHT == GLFW_PRESS || stateLEFT == GLFW_PRESS){
-/* 			printf("\ngoal = %f", rotationGoal);
-			printf("\nplayer = %f", player.rotation); */
-
 			if(player.rotation != rotationGoal){
 				//faz a rotação ao contrário se a rota mais próxima for passando pelo angulo 0
 				if(player.rotation - rotationGoal > 180 || player.rotation - rotationGoal < -180){
@@ -213,7 +209,6 @@ int main(){
 
 				//Faz a rotação normal, sem necessitar checar pelo 360
 				} else {
-
 					if(player.rotation - rotationGoal >= 0){
 						if(player.rotation > rotationGoal) player.rotation -= 5;
 						
