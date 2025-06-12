@@ -25,8 +25,7 @@ using namespace glm;
 
 #include <cmath>
 
-struct Sprite
-{
+struct Sprite{
 	vec3 position;
 	vec3 dimensions;
 	GLuint VAO;
@@ -34,11 +33,10 @@ struct Sprite
 	float ds, dt;
 	int iAnimation, iFrame;
 	int nAnimations, nFrames;
-
 };
 
-Sprite player;
-vector<Sprite> background;
+Sprite farmer;
+Sprite background;
 GLuint createSprite();
 
 int moveX;
@@ -60,12 +58,11 @@ const GLchar *vertexShaderSource = R"(
  out vec2 tex_coord;
  uniform mat4 model;
  uniform mat4 projection;
- void main()
- {
+ void main() {
 	tex_coord = vec2(texc.s, 1.0 - texc.t);
 	gl_Position = projection * model * vec4(position, 1.0);
  }
- )";
+)";
 
 // Código fonte do Fragment Shader (em GLSL): ainda hardcoded
 const GLchar *fragmentShaderSource = R"(
@@ -75,14 +72,13 @@ const GLchar *fragmentShaderSource = R"(
  uniform sampler2D tex_buff;
  uniform vec2 offsetTex;
 
- void main()
- {
+ void main() {
 	 color = texture(tex_buff,tex_coord + offsetTex);
  }
- )";
+)";
 
 
- int main(){
+int main(){
 	srand(time(0));
 
 	glfwInit();
@@ -91,29 +87,16 @@ const GLchar *fragmentShaderSource = R"(
 
 	// Criação da janela GLFW
 	GLFWwindow *window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "Ola Triangulo! -- Rossana", nullptr, nullptr);
-	if (!window)
-	{
-		std::cerr << "Falha ao criar a janela GLFW" << std::endl;
+	if (!window){
 		glfwTerminate();
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
 
-	// Fazendo o registro da função de callback para a janela GLFW
-	//glfwSetKeyCallback(window, key_callback);
-
 	// GLAD: carrega todos os ponteiros d funções da OpenGL
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cerr << "Falha ao inicializar GLAD" << std::endl;
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
 		return -1;
 	}
-
-	// Obtendo as informações de versão
-	const GLubyte *renderer = glGetString(GL_RENDERER); /* get renderer string */
-	const GLubyte *version = glGetString(GL_VERSION);	/* version as a string */
-	cout << "Renderer: " << renderer << endl;
-	cout << "OpenGL version supported " << version << endl;
 
 	// Definindo as dimensões da viewport com as mesmas dimensões da janela da aplicação
 	int width, height;
@@ -128,17 +111,15 @@ const GLchar *fragmentShaderSource = R"(
     GLuint texID = loadTexture("../assets/FarmerSheetWalk.png",imgWidth,imgHeight);
 
 	// Gerando um buffer simples, com a geometria de um triângulo
-	Sprite fazendeirao;
-	fazendeirao.nAnimations = 3;
-	fazendeirao.nFrames = 4;
-	fazendeirao.VAO = setupSprite(fazendeirao.nAnimations,fazendeirao.nFrames,fazendeirao.ds,fazendeirao.dt);
-	fazendeirao.position = vec3(400.0, 150.0, 0.0);
-	fazendeirao.dimensions = vec3(imgWidth/fazendeirao.nFrames*4,imgHeight/fazendeirao.nAnimations*4,1.0);
-	fazendeirao.texID = texID;
-	fazendeirao.iAnimation = 1;
-	fazendeirao.iFrame = 0;
+	farmer.nAnimations = 3;
+	farmer.nFrames = 4;
+	farmer.VAO = setupSprite(farmer.nAnimations,farmer.nFrames,farmer.ds,farmer.dt);
+	farmer.position = vec3(400.0, 150.0, 0.0);
+	farmer.dimensions = vec3(imgWidth/farmer.nFrames*4,imgHeight/farmer.nAnimations*4,1.0);
+	farmer.texID = texID;
+	farmer.iAnimation = 1;
+	farmer.iFrame = 0;
 
-	Sprite background;
 	background.nAnimations = 1;
 	background.nFrames = 1;
 	background.VAO = setupSprite(background.nAnimations,background.nFrames,background.ds,background.dt);
@@ -179,27 +160,6 @@ const GLchar *fragmentShaderSource = R"(
 	vec2 offsetTexBg = vec2(0.0,0.0);
 
 	while (!glfwWindowShouldClose(window))	{
-/* 		// Este trecho de código é totalmente opcional: calcula e mostra a contagem do FPS na barra de título
-		{
-			double curr_s = glfwGetTime();		// Obtém o tempo atual.
-			double elapsed_s = curr_s - prev_s; // Calcula o tempo decorrido desde o último frame.
-			prev_s = curr_s;					// Atualiza o "tempo anterior" para o próximo frame.
-
-			// Exibe o FPS, mas não a cada frame, para evitar oscilações excessivas.
-			title_countdown_s -= elapsed_s;
-			if (title_countdown_s <= 0.0 && elapsed_s > 0.0)
-			{
-				double fps = 1.0 / elapsed_s; // Calcula o FPS com base no tempo decorrido.
-
-				// Cria uma string e define o FPS como título da janela.
-				char tmp[256];
-				sprintf(tmp, "Ola Triangulo! -- Rossana\tFPS %.2lf", fps);
-				glfwSetWindowTitle(window, tmp);
-
-				title_countdown_s = 0.1; // Reinicia o temporizador para atualizar o título periodicamente.
-			}
-		} */
-
 		// Checa se houveram eventos de input (key pressed, mouse moved etc.) e chama as funções de callback correspondentes
 		glfwPollEvents();
 
@@ -210,24 +170,12 @@ const GLchar *fragmentShaderSource = R"(
 		glLineWidth(10);
 		glPointSize(20);
 
-
-
 		// Desenho do background
 		mat4 model = mat4(1);
 		model = translate(model,background.position);
 		model = rotate(model, radians(0.0f), vec3(0.0, 0.0, 1.0));
 		model = scale(model,background.dimensions);
 		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
-
-/* 		currTime = glfwGetTime();
-		deltaT = currTime - lastTime;
-
-		if (deltaT >= 1.0/FPS)	{
-			background.iFrame = (background.iFrame + 1) % 100;
-		}
-		offsetTexBg.s = background.iFrame * 0.01;
-		offsetTexBg.t = 0.0;
-		glUniform2f(glGetUniformLocation(shaderID, "offsetTex"),offsetTexBg.s, offsetTexBg.t); */
 
 		glBindVertexArray(background.VAO); // Conectando ao buffer de geometria
 		glBindTexture(GL_TEXTURE_2D, background.texID); // Conectando ao buffer de textura
@@ -237,32 +185,6 @@ const GLchar *fragmentShaderSource = R"(
 		// Poligono Preenchido - GL_TRIANGLES
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-		//---------------------------------------------------------------------
-		// Desenho do vampirao
-		// Matriz de transformaçao do objeto - Matriz de modelo
-/* 		model = mat4(1); //matriz identidade
-		model = translate(model,vampirao.position);
-		model = rotate(model, radians(0.0f), vec3(0.0, 0.0, 1.0));
-		model = scale(model,vampirao.dimensions);
-		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
-
-		vec2 offsetTex;
-
-		if (deltaT >= 1.0/FPS)
-		{
-			vampirao.iFrame = (vampirao.iFrame + 1) % vampirao.nFrames; // incremento "circular"
-			lastTime = currTime;
-		}
-
-		offsetTex.s = vampirao.iFrame * vampirao.ds;
-		offsetTex.t = 0.0;
-		glUniform2f(glGetUniformLocation(shaderID, "offsetTex"),offsetTex.s, offsetTex.t);
-
-		glBindVertexArray(vampirao.VAO); // Conectando ao buffer de geometria
-		glBindTexture(GL_TEXTURE_2D, vampirao.texID); // Conectando ao buffer de textura */
-
-		//---------------------------------------------------------------------
-
 		moveX = 0;
 		moveY = 0;
 
@@ -270,77 +192,70 @@ const GLchar *fragmentShaderSource = R"(
 		currTime = glfwGetTime();
 		deltaT = currTime - lastTime;
 
+		//farmer.iAnimation = 0;
+
 		const int stateUP = glfwGetKey(window, GLFW_KEY_UP);
 		if(stateUP == GLFW_PRESS) {
 			moveY = +5;
-			fazendeirao.iAnimation = 2;
-			fazendeirao.nAnimations = 2;
+			farmer.iAnimation = 1;
 
 			if (deltaT >= 1.0/FPS)	{
-				fazendeirao.iFrame = (fazendeirao.iFrame + 1) % fazendeirao.nFrames; // incremento "circular"
+				farmer.iFrame = (farmer.iFrame + 1) % farmer.nFrames; // incremento "circular"
 				lastTime = currTime;
 			}
 		}
 		const int stateRIGHT = glfwGetKey(window, GLFW_KEY_RIGHT); 
 		if(stateRIGHT == GLFW_PRESS) {
 			moveX = +5 ;
-			fazendeirao.iAnimation = 1;
-			fazendeirao.nAnimations = 1;
+			farmer.iAnimation = 3;
 
-			if(fazendeirao.dimensions[0] < 0) {
-				fazendeirao.dimensions[0] = -fazendeirao.dimensions[0];
-			}
+			if(farmer.dimensions[0] < 0) farmer.dimensions[0] = -farmer.dimensions[0];
 
 			if (deltaT >= 1.0/FPS)	{
-				fazendeirao.iFrame = (fazendeirao.iFrame + 1) % fazendeirao.nFrames; // incremento "circular"
+				farmer.iFrame = (farmer.iFrame + 1) % farmer.nFrames; // incremento "circular"
 				lastTime = currTime;
 			}
 		}
 		const int stateDOWN = glfwGetKey(window, GLFW_KEY_DOWN);
 		if(stateDOWN == GLFW_PRESS) {
 			moveY = -5;
-			fazendeirao.iAnimation = 3;
-			fazendeirao.nAnimations = 3;
+			farmer.iAnimation = 2;
 
 			if (deltaT >= 1.0/FPS)	{
-				fazendeirao.iFrame = (fazendeirao.iFrame + 1) % fazendeirao.nFrames; // incremento "circular"
+				farmer.iFrame = (farmer.iFrame + 1) % farmer.nFrames; // incremento "circular"
 				lastTime = currTime;
 			}
 		}
 		const int stateLEFT = glfwGetKey(window, GLFW_KEY_LEFT);
 		if(stateLEFT == GLFW_PRESS) {
 			moveX = -5;
-			if(fazendeirao.dimensions[0] > 0) {
-				fazendeirao.dimensions[0] = -fazendeirao.dimensions[0];
-			}
-			fazendeirao.iAnimation = 1;
-			fazendeirao.nAnimations = 1;
+			farmer.iAnimation = 3;
+
+			if(farmer.dimensions[0] > 0) farmer.dimensions[0] = -farmer.dimensions[0];
 
 			if (deltaT >= 1.0/FPS)	{
-				fazendeirao.iFrame = (fazendeirao.iFrame + 1) % fazendeirao.nFrames; // incremento "circular"
+				farmer.iFrame = (farmer.iFrame + 1) % farmer.nFrames; // incremento "circular"
 				lastTime = currTime;
 			}	
 		}
 
-		/* @TODO  FUNDO NÃO PODE SE MEXER, ANDAR PRA CIMA E BAIXO ESTÁ COM ANIMAÇÃO PRA BAIXO*/
-
-		fazendeirao.position[0] += moveX;
-		fazendeirao.position[1] = fmax(0+100, fmin(fazendeirao.position[1]+moveY, WIN_HEIGHT-16));
-		if(fazendeirao.position[0] > WIN_WIDTH) fazendeirao.position[0] = 0;
-		if(fazendeirao.position[0] < 0) fazendeirao.position[0] = WIN_WIDTH;
+		farmer.position[0] += moveX;
+		farmer.position[1] = fmax(0+100, fmin(farmer.position[1]+moveY, WIN_HEIGHT-16));
+		if(farmer.position[0] > WIN_WIDTH) farmer.position[0] = 0;
+		if(farmer.position[0] < 0) farmer.position[0] = WIN_WIDTH;
 
 		model = mat4(1); //matriz identidade
-		model = translate(model,fazendeirao.position);
+		model = translate(model,farmer.position);
 		model = rotate(model, radians(0.0f), vec3(0.0, 0.0, 1.0));
-		model = scale(model,fazendeirao.dimensions);
+		model = scale(model,farmer.dimensions);
 		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
 
-		offsetTex.s = fazendeirao.iFrame * fazendeirao.ds;
-		offsetTex.t = 0.0;
+		offsetTex.s = farmer.iFrame * farmer.ds;
+		offsetTex.t = farmer.iAnimation * farmer.dt;
 		glUniform2f(glGetUniformLocation(shaderID, "offsetTex"),offsetTex.s, offsetTex.t); 
 
-		glBindVertexArray(fazendeirao.VAO); // Conectando ao buffer de geometria
-		glBindTexture(GL_TEXTURE_2D, fazendeirao.texID); // Conectando ao buffer de textura
+		glBindVertexArray(farmer.VAO); // Conectando ao buffer de geometria
+		glBindTexture(GL_TEXTURE_2D, farmer.texID); // Conectando ao buffer de textura
 
 
 		// Chamada de desenho - drawcall
@@ -357,22 +272,8 @@ const GLchar *fragmentShaderSource = R"(
 	return 0;
 }
 
-// Função de callback de teclado - só pode ter uma instância (deve ser estática se
-// estiver dentro de uma classe) - É chamada sempre que uma tecla for pressionada
-// ou solta via GLFW
-/* void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
-{
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
-} */
 
-// Esta função está bastante hardcoded - objetivo é compilar e "buildar" um programa de
-//  shader simples e único neste exemplo de código
-//  O código fonte do vertex e fragment shader está nos arrays vertexShaderSource e
-//  fragmentShader source no iniçio deste arquivo
-//  A função retorna o identificador do programa de shader
-int setupShader()
-{
+int setupShader(){
 	// Vertex shader
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -381,8 +282,7 @@ int setupShader()
 	GLint success;
 	GLchar infoLog[512];
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
+	if (!success){
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
 				  << infoLog << std::endl;
@@ -393,8 +293,7 @@ int setupShader()
 	glCompileShader(fragmentShader);
 	// Checando erros de compilação (exibição via log no terminal)
 	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
+	if (!success){
 		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
 				  << infoLog << std::endl;
@@ -406,8 +305,7 @@ int setupShader()
 	glLinkProgram(shaderProgram);
 	// Checando por erros de linkagem
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success)
-	{
+	if (!success){
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
 				  << infoLog << std::endl;
@@ -418,14 +316,7 @@ int setupShader()
 	return shaderProgram;
 }
 
-// Esta função está bastante harcoded - objetivo é criar os buffers que armazenam a
-// geometria de um triângulo
-// Apenas atributo coordenada nos vértices
-// 1 VBO com as coordenadas, VAO com apenas 1 ponteiro para atributo
-// A função retorna o identificador do VAO
-int setupSprite(int nAnimations, int nFrames, float &ds, float &dt)
-{
-
+int setupSprite(int nAnimations, int nFrames, float &ds, float &dt){
 	ds = 1.0 / (float) nFrames;
 	dt = 1.0 / (float) nAnimations;
 	// Aqui setamos as coordenadas x, y e z do triângulo e as armazenamos de forma
@@ -460,7 +351,6 @@ int setupSprite(int nAnimations, int nFrames, float &ds, float &dt)
 	//  Se está normalizado (entre zero e um)
 	//  Tamanho em bytes
 	//  Deslocamento a partir do byte zero
-
 	// Ponteiro pro atributo 0 - Posição - coordenadas x, y, z
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)0);
 	glEnableVertexAttribArray(0);
@@ -479,10 +369,8 @@ int setupSprite(int nAnimations, int nFrames, float &ds, float &dt)
 	return VAO;
 }
 
-int loadTexture(string filePath, int &width, int &height)
-{
+int loadTexture(string filePath, int &width, int &height){
 	GLuint texID;
-
 	// Gera o identificador da textura na memória
 	glGenTextures(1, &texID);
 	glBindTexture(GL_TEXTURE_2D, texID);
@@ -497,20 +385,14 @@ int loadTexture(string filePath, int &width, int &height)
 
 	unsigned char *data = stbi_load(filePath.c_str(), &width, &height, &nrChannels, 0);
 
-	if (data)
-	{
-		if (nrChannels == 3) // jpg, bmp
-		{
+	if (data){
+		if (nrChannels == 3){
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		}
-		else // png
-		{
+		}else{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		}
 		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
+	}else{
 		std::cout << "Failed to load texture" << std::endl;
 	}
 
