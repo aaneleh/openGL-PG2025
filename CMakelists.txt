@@ -43,11 +43,7 @@ include_directories(${glm_SOURCE_DIR})
 
 # Lista de exemplos/exercícios podem ser colocados aqui também
 set(EXERCISES
-    CreateTriangle
-    JogoDasCores
-    CreateTriangleVertices
-    HelloTexture
-    ParallaxScrolling
+    HelloAnimation
 )
 
 add_compile_options(-Wno-pragmas)

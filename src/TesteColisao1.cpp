@@ -30,7 +30,7 @@ struct Sprite {
 	GLuint VAO;
 };
 
-Sprite player;
+Sprite player, player2;
 vector<Sprite> meteors;
 vector<Sprite> background;
 GLuint createSprite();
@@ -38,6 +38,7 @@ GLuint createSprite();
 int moveX;
 int moveY;
 
+bool checkCollision(Sprite object1, Sprite object2);
 int setupShader();
 int loadTexture(string filePath);
 
@@ -62,17 +63,13 @@ const GLchar *vertexShaderSource = R"(
 )";
 
 // Código fonte do Fragment Shader (em GLSL): ainda hardcoded
-const GLchar *fragmentShaderSource = R"(
- #version 400
- in vec3 vColor;
- in vec2 tex_coord;
- out vec4 color;
- uniform sampler2D tex_buff;
- void main()
- {
-	 color = texture(tex_buff,tex_coord);//vec4(vColor,1.0);
- }
-)";
+const GLchar* fragmentShaderSource = "#version 400\n"
+"uniform vec4 inputColor;\n"
+"out vec4 color;\n"
+"void main()\n"
+"{\n"
+"color = inputColor;\n"
+"}\n\0";
 
 int main(){
 
@@ -102,37 +99,32 @@ int main(){
 	sprite.VAO = createSprite();
 	float spriteDimension;
 
-	//SPRITES BACKGROUND (4 para fazer infinito)
-	sprite.dimensions = vec3(WIN_HEIGHT,WIN_WIDTH,1.0);
-	sprite.rotation = 90.0f;
-	sprite.offset = 0.2f;
-	sprite.TexID = loadTexture("../assets/background.png");
-	sprite.position = vec3(WIN_WIDTH/2, WIN_HEIGHT/2, 0.0);
-	background.push_back(sprite);
-	//TODO GRID 3X3, quando o player chega em uma nova porção 
-
-	//SPRITES METEORS
-	vector<string> images = {"../assets/Meteor_01.png", "../assets/Meteor_04.png", "../assets/Meteor_10.png", "../assets/Meteor_07.png","../assets/Meteor_06.png"};
-	for(int i = 0; i < 8; i++){
-		spriteDimension = rand() % 70 + 70;
-		sprite.position = vec3( rand() % WIN_WIDTH , rand() % WIN_HEIGHT, 0.0);
-		sprite.dimensions = vec3( spriteDimension , spriteDimension ,1.0);
-		sprite.rotation = rand() % 360;
-		sprite.offset = 1 + (rand() % 80)/14;
-		sprite.TexID = loadTexture(images[rand() % images.size()]);
-		meteors.push_back(sprite); 
-	}
-
 	//SPRITE PLAYER
-	sprite.position = vec3(WIN_WIDTH/2, WIN_HEIGHT/2, 0.0);
+	sprite.position = vec3(WIN_WIDTH/2-200, WIN_HEIGHT/2-200, 0.0);
+	sprite.dimensions = vec3(100,100,1.0);
+	sprite.rotation = 25.0f;
+	sprite.offset = 1.0f;
+	sprite.TexID = loadTexture("../assets/ship.png");
+	player = sprite;
+
+	
+	//SPRITE PLAYER
+	sprite.position = vec3(WIN_WIDTH/2-200, WIN_HEIGHT/2-180, 0.0);
 	sprite.dimensions = vec3(100,100,1.0);
 	sprite.rotation = 0.0f;
 	sprite.offset = 1.0f;
 	sprite.TexID = loadTexture("../assets/ship.png");
-	player = sprite;
+	player2 = sprite;
+
+	checkCollision(player,player2);
+
+
+
 	/****************************************************************/
 
 	glUseProgram(shaderID);
+
+	GLuint colorLoc = glGetUniformLocation(shaderID, "inputColor");
 
 	glActiveTexture(GL_TEXTURE0); // Ativando o primeiro buffer de textura do OpenGL
 
@@ -165,132 +157,132 @@ int main(){
 		moveX = 0;
 		moveY = 0;
 
-		const int stateUP = glfwGetKey(window, GLFW_KEY_UP);
-		if(stateUP == GLFW_PRESS) {
-			moveY = -5;
-			//rotationGoal =  0.0;
-		} 
-		const int stateRIGHT = glfwGetKey(window, GLFW_KEY_RIGHT); 
-		if(stateRIGHT == GLFW_PRESS) {
-			moveX = +5;	
-			//rotationGoal =  90.0;
-		}
-		const int stateDOWN = glfwGetKey(window, GLFW_KEY_DOWN);
-		if(stateDOWN == GLFW_PRESS) {
-			moveY = +5;
-			//rotationGoal =  180.0;
-		}
-		const int stateLEFT = glfwGetKey(window, GLFW_KEY_LEFT);
-		if(stateLEFT == GLFW_PRESS) {
-			moveX = -5;	
-			//rotationGoal = 270.0;
-		}
 
-
-		//Se qualquer tecla está pressionada faz a rotação correspondente
-		if(stateUP == GLFW_PRESS || stateDOWN == GLFW_PRESS || stateRIGHT == GLFW_PRESS || stateLEFT == GLFW_PRESS){
-
-			if(moveX > 0){
-				rotationGoal = 90;
-				if(moveY < 0) {
-					rotationGoal -= 45;
-				} else if(moveY > 0) {
-					rotationGoal += 45;
-				}
-			} else if (moveX < 0){
-				rotationGoal = 270;
-				if(moveY < 0) {
-					rotationGoal += 45;
-				} else if(moveY > 0) {
-					rotationGoal -= 45;
-				}
-			} else if(moveY > 0){
-				rotationGoal = 0;
-			} else if (moveY < 0) {
-				rotationGoal = 180;
-			}
-			rotationGoal += 0;
-
-			if(player.rotation != rotationGoal){
-				//faz a rotação ao contrário se a rota mais próxima for passando pelo angulo 0
-				if(player.rotation - rotationGoal > 180 || player.rotation - rotationGoal < -180){
-
-					if(player.rotation - rotationGoal <= 0){
-						player.rotation -= 5;
-
-						if(player.rotation > rotationGoal) player.rotation = rotationGoal;
-					
-					} else if(player.rotation - rotationGoal > 0){
-						player.rotation += 5;
-						if(player.rotation < rotationGoal) player.rotation = rotationGoal;
-					}
-
-					//Se passou de 360 reseta pra 0 e se desceu abaixo de 0 reseta pra 360
-					if(player.rotation > 360) { 	player.rotation = 0;  }
-					else if(player.rotation < 0){ 	player.rotation = 360;	}
-
-				//Faz a rotação normal, sem necessitar checar pelo 360
-				} else {
-					if(player.rotation - rotationGoal >= 0){
-						if(player.rotation > rotationGoal) player.rotation -= 5;
-						
-					} else if(player.rotation - rotationGoal <= 0){
-						if(player.rotation < rotationGoal) player.rotation += 5;
-					}
-				}
-			}
-		}
-
-		//TRANSFORMAÇÕES E DRAW BACKGROUND
-		model = mat4(1);
-		//positionMoved = vec3((meteors[i].position[0] * (moveX*meteors[i].offset)), (meteors[i].position[1] * (moveY*meteors[i].offset)),meteors[i].position[2]);
-		model = translate(model, background[0].position);
-		model = rotate(model, radians(background[0].rotation), vec3(0.0, 0.0, 1.0));
-		model = scale(model, background[0].dimensions);
-		glBindVertexArray(background[0].VAO);
-		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
-		glBindTexture(GL_TEXTURE_2D, background[0].TexID); 
-		glDrawArrays(GL_TRIANGLE_STRIP, 0 , 4);
-
-		//TRANSFORMAÇÕES E DRAW METEOROS
-		for(int i = 0; i < meteors.size(); i++){
-			//MOVIMENTA OS METEOROS PARA DIREÇÃO CONTRARIA DO JOGADOR, CADA METEORO TEM SEU OFFSET, SE MOVIMENTANDO A VELOCIDADES DIFERENTES
-			meteors[i].position = vec3(
-				(meteors[i].position[0] - (moveX*meteors[i].offset)), 
-				(meteors[i].position[1] - (moveY*meteors[i].offset)),
-				meteors[i].position[2]);
-			//QUANDO O METEORO SAÍ DO ESPAÇO DA TELA SUA POSIÇÃO É ENVIADA PARA O OUTRO EXTREMO
-			if(meteors[i].position[0] < 0) meteors[i].position[0] = WIN_WIDTH;
-			if(meteors[i].position[0] > WIN_WIDTH) meteors[i].position[0] = 0;
-			if(meteors[i].position[1] < 0) meteors[i].position[1] = WIN_HEIGHT;
-			if(meteors[i].position[1] > WIN_HEIGHT) meteors[i].position[1] = 0;
-			//TRANSFORMAÇÕES
-			model = mat4(1);
-			model = translate(model, meteors[i].position);
-			model = rotate(model, radians(meteors[i].rotation), vec3(0.0, 0.0, 1.0));
-			model = scale(model, meteors[i].dimensions);
-			//DRAW METEOROS
-			glBindVertexArray(meteors[i].VAO);
-			glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
-			glBindTexture(GL_TEXTURE_2D, meteors[i].TexID); // Conectando ao buffer de textura
-			glDrawArrays(GL_TRIANGLE_STRIP, 0 , 4);
-		} 
 			
 		//TRANSFORMAÇÕES E DRAW NAVE PLAYER
 		model = mat4(1);
 		model = translate(model, player.position);
 		model = rotate(model, radians(player.rotation), vec3(0.0, 0.0, 1.0));
 		model = scale(model, player.dimensions);
+
 		glBindVertexArray(player.VAO);
+				
 		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
-		glBindTexture(GL_TEXTURE_2D, player.TexID); // Conectando ao buffer de textura
+		glUniform4f(colorLoc, 255, 255, 255, 1.0f);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0 , 4);
+
+				model = mat4(1);
+		model = translate(model, player2.position);
+		model = rotate(model, radians(player2.rotation), vec3(0.0, 0.0, 1.0));
+		model = scale(model, player2.dimensions);
+
+		glBindVertexArray(player2.VAO);
+		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
+		glUniform4f(colorLoc, 255, 255, 255, 1.0f);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0 , 4);
+
+/* 		for(int i = 0; i < meteors.size(); i++){
+			if(checkCollision(player, meteors[i]))
+				printf("player colidiu :(");
+		} */
+
+
 
 		glfwSwapBuffers(window);
 	}
 
 	glfwTerminate();
 	return 0;
+}
+
+float sen, cose;
+int count = 0;
+
+bool checkCollision(Sprite object1, Sprite object2){
+	vector<vec3> p;
+	vector<vec3> e;
+
+	sen = sin(object1.rotation);
+	cose = cos(object1.rotation);
+	
+	//ponto 0,0
+	p.push_back(vec3(object1.position[0],object1.position[1], 0.0));
+	//ponto 1,0
+	p.push_back(vec3(
+		 (object1.position[0]+object1.dimensions[0])*cose - object1.position[1]*sen,
+		 object1.position[1]*sen + object1.position[1]*cose,
+		0.0));
+	//ponto 0,1
+	p.push_back(vec3(
+		object1.position[0]*cose - (object1.position[1]+object1.dimensions[1])*sen,
+		(object1.position[1]+object1.dimensions[1])*sen + (object1.position[1]+object1.dimensions[1])*cose,
+		0.0));
+	//ponto 1,1
+	p.push_back(vec3(
+		(object1.position[0]+object1.dimensions[0])*cose - (object1.position[1]+object1.dimensions[1])*sen,
+		(object1.position[1]+object1.dimensions[1])*sen + (object1.position[1]+object1.dimensions[1])*cose,
+		0.0));
+
+	//ARESTAS
+	sen = sin(object2.rotation);
+	cose = cos(object2.rotation);
+	//aresta 0,0 - 1,0
+	e.push_back(vec3(object2.position[0],object2.position[1], 0.0));
+	e.push_back(vec3(
+		 (object2.position[0]+object2.dimensions[0])*cose - object2.position[1]*sen,
+		 object2.position[1]*sen + object2.position[1]*cose,
+		0.0));
+	//aresta 0,0 - 0,1
+	e.push_back(vec3(object2.position[0],object2.position[1], 0.0));
+	e.push_back(vec3(
+		 (object2.position[0]+object2.dimensions[0])*cose - object2.position[1]*sen,
+		 object2.position[1]*sen + object2.position[1]*cose,
+		0.0));
+	//aresta 1,0 - 1,1
+	e.push_back(vec3(
+		object2.position[0]*cose - (object2.position[1]+object2.dimensions[1])*sen,
+		(object2.position[1]+object2.dimensions[1])*sen + (object2.position[1]+object2.dimensions[1])*cose,
+		0.0));
+	e.push_back(vec3(
+		(object2.position[0]+object2.dimensions[0])*cose - (object2.position[1]+object2.dimensions[1])*sen,
+		(object2.position[1]+object2.dimensions[1])*sen + (object2.position[1]+object2.dimensions[1])*cose,
+		0.0));
+	//aresta 0,1 - 1,1
+		e.push_back(vec3(
+		object2.position[0]*cose - (object2.position[1]+object2.dimensions[1])*sen,
+		(object2.position[1]+object2.dimensions[1])*sen + (object2.position[1]+object2.dimensions[1])*cose,
+		0.0));
+	e.push_back(vec3(
+		(object2.position[0]+object2.dimensions[0])*cose - (object2.position[1]+object2.dimensions[1])*sen,
+		(object2.position[1]+object2.dimensions[1])*sen + (object2.position[1]+object2.dimensions[1])*cose,
+		0.0));
+
+	//verificar todos os 4 pontos do object1 com todas as arrestas do object2
+	for(int i = 0; i < p.size(); i++){
+		// Px > Jx - ((Jy-Py)*(Jx-Ix) / (Jy - Iy))
+		// P = p[i]; 	Px = p[i][0]; 	Py = p[i][1]
+		// J = e[j];	Jx = e[j][0];	Jy = e[j][1]
+		// I = e[j+1];	Ix = e[j+1][0];	Iy = e[j+1][1]
+		// p[i][0] > e[i][0] - ((e[i][1]-p[i][1])*(e[i][0]-e[i+1][0]) / (e[i][1] - e[i+1][1]))
+
+		for(int j = 0; j < e.size(); j+=2){
+			count = 0;
+
+			if(p[i][0] > e[j][0] - ((e[j][1]-p[i][1])*(e[j][0]-e[j+1][0]) / (e[j][1] - e[j+1][1]))){
+				count++;
+				//printf("colisao %d", count);
+				//printf("\nContador ponto %d - aresta %d", i, j);
+				//printf("\n%f, %f", p[i][0],p[i][1]);
+
+			}
+			//printf("\nPonto %d - count %d", i, count);
+			if(count%2==1){
+				printf("\nColidiu");
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 int setupShader(){
@@ -403,14 +395,20 @@ int loadTexture(string filePath){
 
 	unsigned char *data = stbi_load(filePath.c_str(), &width, &height, &nrChannels, 0);
 
-	if (data) {
-		if (nrChannels == 3) {
+	if (data)
+	{
+		if (nrChannels == 3) // jpg, bmp
+		{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		} else {
+		}
+		else // png
+		{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		}
 		glGenerateMipmap(GL_TEXTURE_2D);
-	} else {
+	}
+	else
+	{
 		std::cout << "Failed to load texture" << std::endl;
 	}
 
