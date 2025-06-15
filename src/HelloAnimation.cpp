@@ -176,10 +176,9 @@ int main(){
 		model = rotate(model, radians(0.0f), vec3(0.0, 0.0, 1.0));
 		model = scale(model,background.dimensions);
 		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
-
 		glBindVertexArray(background.VAO); // Conectando ao buffer de geometria
 		glBindTexture(GL_TEXTURE_2D, background.texID); // Conectando ao buffer de textura
-		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
+		glUniform2f(glGetUniformLocation(shaderID, "offsetTex"), 1.0, 1.0); 
 
 		// Chamada de desenho - drawcall
 		// Poligono Preenchido - GL_TRIANGLES
@@ -191,8 +190,6 @@ int main(){
  		vec2 offsetTex;
 		currTime = glfwGetTime();
 		deltaT = currTime - lastTime;
-
-		//farmer.iAnimation = 0;
 
 		const int stateUP = glfwGetKey(window, GLFW_KEY_UP);
 		if(stateUP == GLFW_PRESS) {
@@ -256,7 +253,6 @@ int main(){
 
 		glBindVertexArray(farmer.VAO); // Conectando ao buffer de geometria
 		glBindTexture(GL_TEXTURE_2D, farmer.texID); // Conectando ao buffer de textura
-
 
 		// Chamada de desenho - drawcall
 		// Poligono Preenchido - GL_TRIANGLES
