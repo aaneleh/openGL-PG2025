@@ -76,7 +76,7 @@ int main(){
 	srand(time(0));
 	glfwInit();
 	glfwWindowHint(GLFW_SAMPLES, 8);
-	GLFWwindow *window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "Jogo das cores M3", nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "Teste Colisao 1", nullptr, nullptr);
 
 	if(!window){
 		glfwTerminate();

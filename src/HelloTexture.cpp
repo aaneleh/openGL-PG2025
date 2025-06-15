@@ -87,7 +87,7 @@ int main(){
 
 	glfwWindowHint(GLFW_SAMPLES, 8);
 
-	GLFWwindow *window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "Jogo das cores M3", nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "Hello Texture", nullptr, nullptr);
 
 	if(!window){
 		glfwTerminate();
