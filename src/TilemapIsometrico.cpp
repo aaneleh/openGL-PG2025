@@ -252,9 +252,7 @@ bool movePlayer(int goalX, int goalY){
 	int tileType =  tilemap[goalY][goalX];
 
 	for(int i = 0; i < sizeof(VALID_TILES); i++){
-		
 		if(VALID_TILES[i] == tileType){
-			printf("\n>>%d == %d", VALID_TILES[i], tileType);
 			playerTileX = fmax(0, fmin(goalX, TILEMAP_WIDTH-1));
 			playerTileY = fmax(0, fmin(goalY, TILEMAP_HEIGHT-1)); 
 			return true;
