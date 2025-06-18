@@ -38,8 +38,15 @@ mover para os lados ou para cima e para baixo utilizando o teclado.
 2) O fundo da cena será um cenário construído em camadas. Inicialmente, o cenário terá todas as camadas posicionadas igualmente.
 3) Ao mover o personagem, as camadas deverão deslocar-se junto com ele. As camadas mais próximas do personagem (exemplo: chão, árvores...) deverão se deslocar mais rápido (offset maior), enquanto as camadas mais distantes do personagem (exemplo: montanha, nuvens) irão se deslocar mais
 lentamente
-
+  
 ## Tarefa M5 - `HelloAnimation.cpp` 
+  
 1. Adicione as seguintes funcionalidades à classe Sprite:  
   - Suporte a animações por spritesheet  
   - Controle por teclado nas 4 direções (N, S, L, O) a partir das teclas WASD ou setas  
+  
+## Tarefa M6 / Vivencial 3 - `TilemapIsometrico.cpp`
+  
+- 'Mapa' definido por matriz
+- Tile map com projecao isometrica baseado em uma textura de multiplos tiles
+- Movimentacao no 'mapa' com validação das extremidades e se o tile é válido
