@@ -1,4 +1,7 @@
 # PGCCHIB - Processamento Gráfico
+
+![wakatime](https://wakatime.com/badge/user/63a62ebf-02b8-40ab-b01b-99f672dace05/project/d9b10668-01e9-497d-bbca-0cf33307798e.svg) ![GitHub last commit](https://img.shields.io/github/last-commit/aaneleh/openGL-PG2025)
+
 Repositório criado usando como base o repositório exemplo da disciplina de **Processamento Gráfico**.
 
 ## Tarefa M2 - Create Triangle `CreateTriangle.cpp`
